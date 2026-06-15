@@ -16,7 +16,7 @@ import Link from "next/link";
 import React, { Dispatch, SetStateAction, useState } from "react";
 import { useOutsideClick } from "@/lib/useOutsideClick";
 import { cn } from "@/lib/utils";
-import { easeOut, motion } from "motion/react";
+import { AnimatePresence, motion } from "motion/react";
 
 const Navbar = () => {
   const [openExplore, setOpenExplore] = useState<boolean>(false);
@@ -103,91 +103,103 @@ const Hamburger = ({ className }: { className?: string }) => {
 
   return (
     <div className="block md:hidden ">
-      {!openHamburger && (
-        <div onClick={() => setOpenHamburger(true)} className={className}>
-          <HamburgerSvg className="stroke-neutral-800 p-0.5" />
-        </div>
-      )}
-      {openHamburger && (
-        <div className="fixed inset-0 h-screen w-full bg-white z-50 ">
-          <div
-            onClick={() => {
-              setOpenHamburger(false);
-            }}
-            className="absolute right-4 top-4 bg-neutral-100 rounded-full"
-          >
-            <XSvg className="p-1 stroke-neutral-400" />
-          </div>
+      <div onClick={() => setOpenHamburger(true)} className={className}>
+        <HamburgerSvg className="stroke-neutral-800 p-0.5" />
+      </div>
 
-          <div className="h-16 flex items-center pl-2 border-b border-neutral-200">
-            <Link href={"/"} className="relative block size-14">
-              <Image
-                src="/logo.webp"
-                alt="Logo"
-                fill
-                priority
-                sizes="200px"
-                style={{ objectFit: "contain" }}
-              />
-            </Link>
-          </div>
-
-          <div className="relative">
-            <SelectionButton
-              open={openLocation}
-              setOpen={setOpenLocation}
-              className={cn(
-                "w-full py-4 px-5 border-b border-neutral-200",
-                openLocation && "border-y border-blue-500",
-              )}
-            >
-              <LocationSvg />
-              <span>Location</span>
-              {openLocation ? (
-                <MinusSvg className="absolute right-5" />
-              ) : (
-                <PlusSvg className="absolute right-5" />
-              )}
-            </SelectionButton>
-            {openLocation && <SelectLocation />}
-          </div>
-
-          <div className="relative">
-            <SelectionButton
-              open={openExplore}
-              setOpen={setOpenExplore}
-              className={cn(
-                "w-full py-4 px-5 border-b border-neutral-200 group",
-                openExplore && " border-y border-blue-500",
-              )}
-            >
-              <ExploreSvg />
-              <span>Explore</span>
-              {openExplore ? (
-                <MinusSvg className="absolute right-5" />
-              ) : (
-                <PlusSvg className="absolute right-5" />
-              )}
-            </SelectionButton>
-            {openExplore && <SelectionExplore />}
-          </div>
-
+      <AnimatePresence>
+        {openHamburger && (
           <motion.div
-            layout
-            transition={{
-              duration: 0.2,
-              ease: "easeOut",
+            initial={{ x: "-200%" }}
+            animate={{ x: 0 }}
+            exit={{
+              x: "-200%",
             }}
+            transition={{
+              duration: 0.4,
+              ease: "easeInOut",
+            }}
+            className="fixed inset-0 h-screen w-full bg-white z-50 "
           >
-            <Link
-              href="/login"
-              className="block w-[94%] my-5 py-3.5 mx-auto bg-blue-600 hover:bg-blue-700 text-[16px] text-white text-center px-4 font-bold tracking-wide rounded-md cursor-pointer shadow-sm"
+            <div
+              onClick={() => {
+                setOpenHamburger(false);
+              }}
+              className="absolute right-4 top-4 bg-neutral-100 rounded-full"
             >
-              Login/Sign Up
-            </Link>
+              <XSvg className="p-1 stroke-neutral-400" />
+            </div>
+
+            <div className="h-16 flex items-center pl-2 border-b border-neutral-200">
+              <Link href={"/"} className="relative block size-14">
+                <Image
+                  src="/logo.webp"
+                  alt="Logo"
+                  fill
+                  priority
+                  sizes="200px"
+                  style={{ objectFit: "contain" }}
+                />
+              </Link>
+            </div>
+
+            <div className="relative">
+              <SelectionButton
+                open={openLocation}
+                setOpen={setOpenLocation}
+                className={cn(
+                  "w-full py-4 px-5 border-b border-neutral-200",
+                  openLocation && "border-y border-blue-500",
+                )}
+              >
+                <LocationSvg />
+                <span>Location</span>
+                {openLocation ? (
+                  <MinusSvg className="absolute right-5" />
+                ) : (
+                  <PlusSvg className="absolute right-5" />
+                )}
+              </SelectionButton>
+              {openLocation && <SelectLocation />}
+            </div>
+
+            <div className="relative">
+              <SelectionButton
+                open={openExplore}
+                setOpen={setOpenExplore}
+                className={cn(
+                  "w-full py-4 px-5 border-b border-neutral-200 group",
+                  openExplore && " border-y border-blue-500",
+                )}
+              >
+                <ExploreSvg />
+                <span>Explore</span>
+                {openExplore ? (
+                  <MinusSvg className="absolute right-5" />
+                ) : (
+                  <PlusSvg className="absolute right-5" />
+                )}
+              </SelectionButton>
+              {openExplore && <SelectionExplore />}
+            </div>
+
+            <motion.div
+              layout
+              transition={{
+                duration: 0.2,
+                ease: "easeOut",
+              }}
+            >
+              <Link
+                href="/login"
+                className="block w-[94%] my-5 py-3.5 mx-auto bg-blue-600 hover:bg-blue-700 text-[16px] text-white text-center px-4 font-bold tracking-wide rounded-md cursor-pointer shadow-sm"
+              >
+                Login/Sign Up
+              </Link>
+            </motion.div>
           </motion.div>
-        </div>
-      )}
+        )}
+      </AnimatePresence>
     </div>
   );
 };
