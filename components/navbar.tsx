@@ -17,6 +17,7 @@ import React, { Dispatch, SetStateAction, useState } from "react";
 import { useOutsideClick } from "@/lib/useOutsideClick";
 import { cn } from "@/lib/utils";
 import { AnimatePresence, motion } from "motion/react";
+import { LinkedButton } from "./buttons";
 
 const Navbar = () => {
   const [openExplore, setOpenExplore] = useState<boolean>(false);
@@ -80,7 +81,7 @@ const Navbar = () => {
           {openExplore && <SelectionExplore />}
         </OutsideContainer>
 
-        <motion.div
+        {/* <motion.div
           whileHover={{ scale: 1.08 }}
           transition={{ duration: 0.15, ease: "easeIn" }}
         >
@@ -90,7 +91,10 @@ const Navbar = () => {
           >
             Login
           </Link>
-        </motion.div>
+        </motion.div> */}
+        <LinkedButton href="/login">
+          Login
+        </LinkedButton>
       </div>
     </nav>
   );
@@ -347,16 +351,6 @@ const SelectionExplore = () => {
             {link.name}
           </Link>
         ))}
-        {/* {links.map((city) => (
-          <Link
-            key={city.name}
-            href={city.href}
-            className="w-full flex items-end gap-2 px-2 py-3 border border-neutral-200 shadow-xs rounded-lg font-bold text-neutral-700 hover:border-blue-500 hover:text-blue-500 "
-          >
-            {city.svg}
-            {city.name}
-          </Link>
-        ))} */}
       </SelectionContent>
     </SelectionBox>
   );
@@ -373,11 +367,11 @@ const SelectionBox = ({
     <motion.div
       initial={{
         opacity: 0,
-        scaleY: 0,
+        y: -10,
       }}
       animate={{
         opacity: 1,
-        scaleY: 1,
+        y: 0,
       }}
       className={cn(
         "md:absolute origin-top px-5 py-4 bg-white z-30 md:right-0 md:top-11.5 md:rounded-lg border-y md:border border-neutral-200 md:shadow-sm",
@@ -427,7 +421,7 @@ const SelectionButton = ({
     <motion.button
       layout
       transition={{
-        duration: 0.23,
+        duration: 0.2,
         ease: "easeOut",
       }}
       onClick={() => setOpen((prev) => !prev)}
