@@ -1,11 +1,12 @@
 "use client";
 
-import React, { useState } from "react";
-import { PlaneButton } from "./buttons";
+import React, { useEffect, useState } from "react";
+import { LinkedButton, PlaneButton } from "./buttons";
 import {
   FilterSvg,
   GridListSvg,
   ListSvg,
+  LocationSvg,
   StarSvg,
   TableSvg,
   XSvg,
@@ -14,6 +15,8 @@ import { Modal } from "./modal";
 import { useOutsideClick } from "@/lib/useOutsideClick";
 import { Card, CardContent, CardTitle } from "./card";
 import { Checkbox } from "./inputs";
+import Image from "next/image";
+import Link from "next/link";
 
 type FilterOptionsTypes = {
   salary: number;
@@ -64,14 +67,54 @@ type FilterOptionsTypes = {
   setOpen: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
+type TypeSchool = {
+  _id: string;
+  name: string;
+  slug: string;
+  city: string;
+  state: string;
+  feeFrom: number;
+  rating: number;
+  schoolType: {
+    isBoarding: boolean;
+    isCoed: boolean;
+    isCbse: boolean;
+    isIcse: boolean;
+    isIgcse: boolean;
+    isBoys: boolean;
+    isGirls: boolean;
+    isDay: boolean;
+    isIb: boolean;
+  };
+  logo?: string;
+  thumbnail?: string;
+  isVerified: boolean;
+};
+
 const Listing = () => {
+  const [schoolList, setSchoolList] = useState<TypeSchool[]>([]);
+  useEffect(() => {
+    const getSchools = async () => {
+      const res = await fetch(
+        "https://edutracker-updated-backend.onrender.com/api/schools?limit=100&isBoarding=true",
+      );
+      const data = await res.json();
+      const sortedSchools = [...data.schools].sort(
+        (a, b) => b.rating - a.rating,
+      );
+      setSchoolList(sortedSchools);
+      console.log(sortedSchools);
+    };
+    getSchools();
+  }, []);
+
   return (
     <section id="listings" className=" mt-12 scroll-mt-20 px-2">
       <h1 className="text-2xl md:text-4xl font-bold tracking-tight mb-4">
         Verified Boarding Schools
       </h1>
       <Filter />
-      <SchoolContainer />
+      <SchoolContainer schools={schoolList} />
     </section>
   );
 };
@@ -457,22 +500,81 @@ const FilterOptions = ({
   );
 };
 
-const SchoolContainer = () => {
-  
-
-  return(
-    <div className="mt- border p-2">
+const SchoolContainer = ({ schools }: { schools: TypeSchool[] | [] }) => {
+  return (
+    <div className="mt-8 grid grid-cols-1 gap-4">
+      <SchoolCard />
       <SchoolCard />
     </div>
-  )
+  );
 };
 
 const SchoolCard = () => {
-  return(
-    <div>
-      card
+  return (
+    <div className="flex p-4 border bg-white border-neutral-200 rounded-xl gap-8 group">
+      <div className="relative h-full w-45 rounded-lg border border-neutral-200 overflow-hidden">
+        <Image alt="school" src="/school-fallback.png" fill />
+      </div>
+      <div className="flex-1">
+        <div className="flex gap-3">
+          <div className="bg-white shadow-sm size-12 rounded-lg p-1.5">
+            <div className="w-full h-full bg-blue-50 rounded-lg flex items-center justify-center text-md font-bold text-neutral-800">
+              k
+            </div>
+          </div>
+          <div>
+            <h1 className="font-bold group-hover:text-blue-600">
+              The Doon School
+            </h1>
+            <span className="flex text-xs items-center text-gray-400 font-semibold">
+              <LocationSvg className="p-1 stroke-blue-500" /> Dehradun, Uttarakhand
+            </span>
+            <div className="flex items-center gap-1 mt-1">
+              <span className="flex items-center text-[10px] text-amber-500 border border-amber-200 px-1 py-0.5 rounded-lg bg-amber-50 font-bold">
+                <StarSvg className="size-3 stroke-amber-500 fill-amber-500" />{" "}
+                5.0
+              </span>
+              <span className="flex items-center text-[10px] text-blue-500 border border-blue-200 px-1 py-0.5 rounded-lg bg-blue-50 font-bold">
+                CBSE
+              </span>
+              <span className="flex items-center text-[10px] text-indigo-500 border border-indigo-200 px-1 py-0.5 rounded-lg bg-indigo-50 font-bold">
+                Boarding
+              </span>
+              <span className="flex items-center text-[10px] text-red-600 border border-red-200 px-1 py-0.5 rounded-lg bg-red-50 font-bold">
+                Boys Only
+              </span>
+              <span className="flex items-center text-[10px] text-green-600 border border-green-200 px-1 py-0.5 rounded-lg bg-green-50 font-bold">
+                ₹900,000 Avg
+              </span>
+            </div>
+          </div>
+        </div>
+        <div className="flex mt-15 justify-between w-full">
+          <div>
+            <span className="flex items-center gap-1">
+              <h1 className="text-lg font-bold text-green-600">₹900,000</h1>
+              <span className="text-neutral-400 font-bold text-[10px] tracking-tight ">Annual Fee</span>
+            </span>
+            <div className="divide-x divide-neutral-200">
+              <Link href="/" className="text-[10px] px-2 font-bold text-blue-700 tracking-tight hover:underline">View Profile</Link>
+              <Link href="/" className="text-[10px] px-2 font-bold text-blue-700 tracking-tight hover:underline">View Fees</Link>
+            </div>
+          </div>
+          <div className="flex self-end gap-2">
+            <PlaneButton onclick={() => console.log("a")} className="h-fit border-neutral-300 text-xs" >
+              Compare
+            </PlaneButton>
+            <PlaneButton onclick={() => console.log("a")} className="h-fit border-neutral-300 text-xs" >
+              Apply
+            </PlaneButton>
+            <LinkedButton scale={1.02} href="/" className="rounded-lg">
+              Enquiry
+            </LinkedButton>
+          </div>
+        </div>
+      </div>
     </div>
-  )
-}
+  );
+};
 
 export default Listing;
