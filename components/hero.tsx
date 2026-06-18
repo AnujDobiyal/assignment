@@ -31,7 +31,7 @@ const Hero = () => {
           href="/#listings"
           scale={1.02}
           duration={0.15}
-          className="bg-orange-400 hover:bg-orange-500 mt-5 md:text-sm flex gap-2 py-3"
+          className="bg-orange-400 hover:bg-orange-500 mt-5 md:text-sm flex items-center tracking-tight gap-2 md:py-3 rounded-lg"
         >
           VIEW TOP BOARDING SCHOOLS <ChevronRight />
         </LinkedButton>

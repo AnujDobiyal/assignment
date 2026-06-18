@@ -17,14 +17,14 @@ import React, { Dispatch, SetStateAction, useState } from "react";
 import { useOutsideClick } from "@/lib/useOutsideClick";
 import { cn } from "@/lib/utils";
 import { AnimatePresence, motion } from "motion/react";
-import { LinkedButton } from "./buttons";
+import { LinkedButton, LinkedPlaneButton } from "./buttons";
 
 const Navbar = () => {
   const [openExplore, setOpenExplore] = useState<boolean>(false);
   const [openLocation, setOpenLocation] = useState<boolean>(false);
 
   return (
-    <nav className="fixed left-1/2 -translate-x-1/2 px-3 md:px-6 w-full md:w-[90%] md:max-w-7xl  bg-white border-b md:border border-neutral-200 shadow-sm flex m-0 md:my-2.5 md:rounded-md justify-between items-center text-xs">
+    <nav className="fixed left-1/2 -translate-x-1/2 z-30 px-3 md:px-6 w-full md:w-[90%] md:max-w-7xl  bg-white border-b md:border border-neutral-200 shadow-sm flex m-0 md:my-2.5 md:rounded-md justify-between items-center text-xs">
       <div className="flex items-center gap-2">
         <Hamburger />
 
@@ -92,9 +92,7 @@ const Navbar = () => {
             Login
           </Link>
         </motion.div> */}
-        <LinkedButton href="/login">
-          Login
-        </LinkedButton>
+        <LinkedButton href="/login">Login</LinkedButton>
       </div>
     </nav>
   );
@@ -285,14 +283,10 @@ const SelectLocation = () => {
       <SelectionTitle>Select City</SelectionTitle>
       <SelectionContent>
         {cities.map((city) => (
-          <Link
-            key={city.name}
-            href={city.href}
-            className="w-full flex items-end gap-2 px-2 py-3 border border-neutral-200 shadow-xs rounded-lg font-bold text-neutral-700 hover:border-blue-500 hover:text-blue-500 "
-          >
+          <LinkedPlaneButton key={city.name} href={city.href}>
             {city.svg}
             {city.name}
-          </Link>
+          </LinkedPlaneButton>
         ))}
       </SelectionContent>
     </SelectionBox>
@@ -343,13 +337,9 @@ const SelectionExplore = () => {
       <SelectionTitle>Explore More</SelectionTitle>
       <SelectionContent className="grid-cols-3">
         {links.map((link) => (
-          <Link
-            key={link.name}
-            href={link.href}
-            className="w-full flex items-end gap-2 px-3 py-3 border border-neutral-200 shadow-xs rounded-lg font-bold text-neutral-700 hover:border-blue-500 hover:text-blue-500 "
-          >
+          <LinkedPlaneButton key={link.name} href={link.href}>
             {link.name}
-          </Link>
+          </LinkedPlaneButton>
         ))}
       </SelectionContent>
     </SelectionBox>
