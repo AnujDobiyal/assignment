@@ -52,9 +52,9 @@ const AboutUniportal = () => {
           informed decisions with confidence
         </span>
       </div>
-      <div className=" p-8 my-8 bg-neutral-200 rounded-xl w-fit">
-        <h1 className="text-xl md:text-xl font-bold tracking-tight my-2">For Schools</h1>
-        <p className=" text-neutral-600 font-medium text-lg max-w-4xl">
+      <div className=" p-8 my-8 bg-blue-500 rounded-xl w-fit">
+        <h1 className="text-xl text-white md:text-xl font-bold tracking-tight my-2">For Schools</h1>
+        <p className=" text-neutral-100/90 font-medium text-lg max-w-4xl">
           UniPortal provides educational institutions with a platform to
           showcase their strengths, reach prospective students, and improve
           their digital visibility. We help schools connect with families
