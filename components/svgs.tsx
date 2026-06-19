@@ -378,10 +378,33 @@ const StarSvg = ({ className }: { className?: string }) => {
       strokeWidth={2}
       strokeLinecap="round"
       strokeLinejoin="round"
-      className={cn("icon icon-tabler icons-tabler-outline icon-tabler-star", className)}
+      className={cn(
+        "icon icon-tabler icons-tabler-outline icon-tabler-star",
+        className,
+      )}
     >
       <path stroke="none" d="M0 0h24v24H0z" fill="none" />
       <path d="M12 17.75l-6.172 3.245l1.179 -6.873l-5 -4.867l6.9 -1l3.086 -6.253l3.086 6.253l6.9 1l-5 4.867l1.179 6.873l-6.158 -3.245" />
+    </svg>
+  );
+};
+const VerifiedSvg = ({ className }: { className?: string }) => {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width={18}
+      height={18}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={cn("icon icon-tabler icons-tabler-outline icon-tabler-shield-check", className)}
+    >
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M11.46 20.846a12 12 0 0 1 -7.96 -14.846a12 12 0 0 0 8.5 -3a12 12 0 0 0 8.5 3a12 12 0 0 1 -.09 7.06" />
+      <path d="M15 19l2 2l4 -4" />
     </svg>
   );
 };
@@ -402,5 +425,6 @@ export {
   ListSvg,
   GridListSvg,
   TableSvg,
-  StarSvg
+  StarSvg,
+  VerifiedSvg
 };

@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
-import { LinkedButton, PlaneButton } from "./buttons";
+import React, { useEffect, useRef, useState } from "react";
+import { LinkedButton, LinkedPlaneButton, PlaneButton } from "./buttons";
 import {
   FilterSvg,
   GridListSvg,
@@ -9,6 +9,7 @@ import {
   LocationSvg,
   StarSvg,
   TableSvg,
+  VerifiedSvg,
   XSvg,
 } from "./svgs";
 import { Modal } from "./modal";
@@ -17,10 +18,12 @@ import { Card, CardContent, CardTitle } from "./card";
 import { Checkbox } from "./inputs";
 import Image from "next/image";
 import Link from "next/link";
+import { motion } from "motion/react";
+import { useIsMobile } from "@/lib/useIsMobile";
 
 type FilterOptionsTypes = {
-  salary: number;
-  setSalary: React.Dispatch<React.SetStateAction<number>>;
+  fees: number;
+  setFees: React.Dispatch<React.SetStateAction<number>>;
 
   rating: number;
   setRating: React.Dispatch<React.SetStateAction<number>>;
@@ -67,6 +70,16 @@ type FilterOptionsTypes = {
   setOpen: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
+type AdditionalTypes = {
+  open: boolean;
+  isFilterChanged: boolean;
+  clearAll: () => void;
+  listOption: "default" | "grid";
+  setListOption: React.Dispatch<React.SetStateAction<"default" | "grid">>;
+};
+
+type FilterType = FilterOptionsTypes & AdditionalTypes;
+
 type TypeSchool = {
   _id: string;
   name: string;
@@ -92,40 +105,10 @@ type TypeSchool = {
 };
 
 const Listing = () => {
-  const [schoolList, setSchoolList] = useState<TypeSchool[]>([]);
-  useEffect(() => {
-    const getSchools = async () => {
-      const res = await fetch(
-        "https://edutracker-updated-backend.onrender.com/api/schools?limit=100&isBoarding=true",
-      );
-      const data = await res.json();
-      const sortedSchools = [...data.schools].sort(
-        (a, b) => b.rating - a.rating,
-      );
-      setSchoolList(sortedSchools);
-      console.log(sortedSchools);
-    };
-    getSchools();
-  }, []);
-
-  return (
-    <section id="listings" className=" mt-12 scroll-mt-20 px-2">
-      <h1 className="text-2xl md:text-4xl font-bold tracking-tight mb-4">
-        Verified Boarding Schools
-      </h1>
-      <Filter />
-      <SchoolContainer schools={schoolList} />
-    </section>
-  );
-};
-
-const Filter = () => {
   const [openFilter, setOpenFilter] = useState<boolean>(false);
-  const [listOption, setListOption] = useState<"default" | "grid" | "table">(
-    "default",
-  );
+  const [listOption, setListOption] = useState<"default" | "grid">("default");
 
-  const initialSalary = 20;
+  const initialFees = 20;
   const initialRating = 0;
   const initialAccommodation = {
     residential: false,
@@ -145,7 +128,7 @@ const Filter = () => {
     boys: false,
   };
 
-  const [salary, setSalary] = useState<number>(initialSalary);
+  const [fees, setFees] = useState<number>(initialFees);
   const [rating, setRating] = useState<number>(initialRating);
   const [accommodation, setAccommodation] = useState<{
     residential: boolean;
@@ -164,19 +147,122 @@ const Filter = () => {
   }>(initialGender);
 
   const isFilterChanged =
-    salary !== initialSalary ||
+    fees !== initialFees ||
     rating !== initialRating ||
     JSON.stringify(accommodation) !== JSON.stringify(initialAccommodation) ||
     JSON.stringify(boards) !== JSON.stringify(initialBoards) ||
     JSON.stringify(gender) !== JSON.stringify(initialGender);
 
   const clearAll = () => {
-    setSalary(initialSalary);
+    setFees(initialFees);
     setRating(initialRating);
     setAccommodation(initialAccommodation);
     setBoards(initialBoards);
     setGender(initialGender);
   };
+
+  const [schoolList, setSchoolList] = useState<TypeSchool[]>([]);
+
+  const fetchedSchools = useRef<TypeSchool[]>([]);
+
+  useEffect(() => {
+    const getSchools = async () => {
+      const res = await fetch(
+        "https://edutracker-updated-backend.onrender.com/api/schools?limit=50&isBoarding=true",
+      );
+      const data = await res.json();
+      const sortedSchools = [...data.schools].sort(
+        (a, b) => b.rating - a.rating,
+      );
+      fetchedSchools.current = sortedSchools;
+      setSchoolList(sortedSchools);
+      console.log(sortedSchools);
+    };
+    getSchools();
+  }, []);
+
+  useEffect(() => {
+    const updateSchools = () => {
+      let schools = fetchedSchools.current.filter(
+        (school) => school.feeFrom <= fees * 100000 && school.rating >= rating,
+      );
+
+      if (accommodation.day !== initialAccommodation.day) {
+        schools = schools.filter((school) => school.schoolType.isDay === true);
+      }
+      if (boards.cbse || boards.ib || boards.icse || boards.igcse) {
+        schools = schools.filter(
+          (school) =>
+            (school.schoolType.isCbse && boards.cbse) ||
+            (school.schoolType.isIb && boards.ib) ||
+            (school.schoolType.isIcse && boards.icse) ||
+            (school.schoolType.isIgcse && boards.igcse),
+        );
+      }
+      if (gender.boys || gender.girls || gender.coed) {
+        schools = schools.filter(
+          (school) =>
+            (school.schoolType.isBoys && gender.boys) ||
+            (school.schoolType.isGirls && gender.girls) ||
+            (school.schoolType.isCoed && gender.coed),
+        );
+      }
+
+      setSchoolList(schools);
+    };
+    updateSchools();
+  }, [fees, rating, accommodation, boards, gender]);
+
+  return (
+    <section id="listings" className=" my-12 scroll-mt-20 px-2">
+      <h1 className="text-2xl md:text-4xl font-bold tracking-tight mb-4">
+        Verified Boarding Schools
+      </h1>
+      <Filter
+        fees={fees}
+        setFees={setFees}
+        rating={rating}
+        setRating={setRating}
+        accommodation={accommodation}
+        setAccommodation={setAccommodation}
+        boards={boards}
+        setBoards={setBoards}
+        gender={gender}
+        setGender={setGender}
+        open={openFilter}
+        setOpen={setOpenFilter}
+        listOption={listOption}
+        setListOption={setListOption}
+        isFilterChanged={isFilterChanged}
+        clearAll={clearAll}
+      />
+      <SchoolContainer
+        schools={schoolList.slice(0, 20)}
+        listOption={listOption}
+      />
+    </section>
+  );
+};
+
+const Filter = ({
+  fees,
+  setFees,
+  rating,
+  setRating,
+  accommodation,
+  setAccommodation,
+  boards,
+  setBoards,
+  gender,
+  setGender,
+  open,
+  setOpen,
+  listOption,
+  setListOption,
+  isFilterChanged,
+  clearAll,
+}: FilterType) => {
+  const isMobile = useIsMobile()
 
   const list = [
     {
@@ -195,20 +281,22 @@ const Filter = () => {
       ),
       type: "grid",
     },
-    {
-      svg: (
-        <TableSvg className={listOption === "table" ? "stroke-blue-700" : ""} />
-      ),
-      type: "table",
-    },
+    // {
+    //   svg: (
+    //     <TableSvg className={listOption === "table" ? "stroke-blue-700" : ""} />
+    //   ),
+    //   type: "table",
+    // },
   ];
 
   return (
     <div className=" flex justify-between items-center">
       <PlaneButton
-        onclick={() => setOpenFilter(true)}
+        onclick={() => setOpen(true)}
         className={
-          isFilterChanged || openFilter ? "text-blue-600 border-blue-600" : ""
+          isFilterChanged || open
+            ? "text-blue-600 border-blue-600 h-10"
+            : "h-10"
         }
       >
         <FilterSvg /> Filter
@@ -218,15 +306,15 @@ const Filter = () => {
               e.stopPropagation();
               clearAll();
             }}
-            className="rounded-full hover:bg-blue-100 p-1"
+            className="rounded-full hover:bg-blue-100 p-1 "
           >
             <XSvg className="size-4" />
           </div>
         )}
-        {openFilter && (
+        {open && (
           <FilterOptions
-            salary={salary}
-            setSalary={setSalary}
+            fees={fees}
+            setFees={setFees}
             rating={rating}
             setRating={setRating}
             accommodation={accommodation}
@@ -235,38 +323,29 @@ const Filter = () => {
             setBoards={setBoards}
             gender={gender}
             setGender={setGender}
-            setOpen={setOpenFilter}
+            setOpen={setOpen}
           />
         )}
       </PlaneButton>
 
-      <div className="flex gap-1">
-        {/* <select className="bg-white w-30 rounded-md border border-neutral-300 shadow-sm px-1 cursor-pointer">
-          <option value="all">All </option>
-            <option >
-              ldddddddd
-            </option>
-        </select> */}
-
+      {!isMobile && <div className="flex gap-1">
         {list.map((l) => (
           <PlaneButton
             key={l.type}
-            onclick={() =>
-              setListOption(l.type as "default" | "grid" | "table")
-            }
+            onclick={() => setListOption(l.type as "default" | "grid")}
             className={`p-1 rounded-md ${listOption === l.type ? " border-blue-700 hover:border-blue-700" : ""}`}
           >
             {l.svg}
           </PlaneButton>
         ))}
-      </div>
+      </div>}
     </div>
   );
 };
 
 const FilterOptions = ({
-  salary,
-  setSalary,
+  fees,
+  setFees,
   rating,
   setRating,
   accommodation,
@@ -392,7 +471,7 @@ const FilterOptions = ({
                   <div className="text-xs tracking-tighter flex justify-between text-neutral-600 px-1">
                     <span>₹50k</span>
                     <span className="text-xs tracking-tighter font-medium text-blue-600">
-                      Up to ₹{salary.toFixed(1)}L
+                      Up to ₹{fees.toFixed(1)}L
                     </span>
                     <span>₹20L</span>
                   </div>
@@ -401,8 +480,8 @@ const FilterOptions = ({
                     min={0.5}
                     max={20}
                     step={0.5}
-                    value={salary}
-                    onChange={(e) => setSalary(+Number(e.target.value))}
+                    value={fees}
+                    onChange={(e) => setFees(+Number(e.target.value))}
                     className="h-2 bg-neutral-200/80 appearance-none accent-blue-500 hover:accent-blue-600 cursor-pointer rounded-lg "
                   />
                 </div>
@@ -500,80 +579,178 @@ const FilterOptions = ({
   );
 };
 
-const SchoolContainer = ({ schools }: { schools: TypeSchool[] | [] }) => {
+const SchoolContainer = ({
+  schools,
+  listOption,
+}: {
+  schools: TypeSchool[] | [];
+  listOption: "default" | "grid";
+}) => {
   return (
-    <div className="mt-8 grid grid-cols-1 gap-4">
-      <SchoolCard />
-      <SchoolCard />
+    <div
+      className={`mt-5 grid  gap-4 ${listOption === "default" ? "grid-cols-1" : "grid-cols-1 md:grid-cols-2 lg:grid-cols-3"}`}
+    >
+      {schools.map((school) => (
+        <SchoolCard key={school._id} school={school} listOption={listOption} />
+      ))}
     </div>
   );
 };
 
-const SchoolCard = () => {
+const SchoolCard = ({
+  school,
+  listOption,
+}: {
+  school: TypeSchool;
+  listOption: "default" | "grid";
+}) => {
   return (
-    <div className="flex p-4 border bg-white border-neutral-200 rounded-xl gap-8 group">
-      <div className="relative h-full w-45 rounded-lg border border-neutral-200 overflow-hidden">
-        <Image alt="school" src="/school-fallback.png" fill />
-      </div>
+    <motion.div
+      initial={{opacity: 0 , y: 10}}
+      animate={{opacity: 1 , y: 0}}
+      className={`flex  p-4 border bg-white border-neutral-200 rounded-xl group  ${listOption === "grid" ? "flex-col gap-4" : "gap-8 flex-col md:flex-row md:gap-4 "}`}
+    >
+      <Link
+        href={`/schools/${school.slug}/`}
+        className={`relative rounded-lg border border-neutral-200 overflow-hidden cursor-pointer ${listOption === "grid" ? "w-full h-72" : "w-full md:w-48 h-72 md:h-full "}`}
+      >
+        <Image
+          alt="school"
+          sizes="200px"
+          src={school.thumbnail ? school.thumbnail : "/school-fallback.png"}
+          fill
+        />
+        <div className="absolute top-2 left-2 flex gap-0.5 items-center bg-green-600  border border-green-400 text-[8px] tracking-tight text-white font-bold rounded-md  p-1  ">
+          <VerifiedSvg className="size-2.5 stroke-white stroke-3" /> verified
+        </div>
+      </Link>
       <div className="flex-1">
         <div className="flex gap-3">
-          <div className="bg-white shadow-sm size-12 rounded-lg p-1.5">
-            <div className="w-full h-full bg-blue-50 rounded-lg flex items-center justify-center text-md font-bold text-neutral-800">
-              k
-            </div>
+          <div className="relative bg-white border border-neutral-200 shadow-sm size-14 rounded-lg p-1.5 overflow-hidden ">
+            {school.logo ? (
+              <Image alt="logo" sizes="200px" src={school.logo} fill />
+            ) : (
+              <div className="w-full h-full bg-blue-50 rounded-lg flex items-center justify-center text-md font-bold text-neutral-800">
+                {school.name[0]}
+              </div>
+            )}
           </div>
           <div>
             <h1 className="font-bold group-hover:text-blue-600">
-              The Doon School
+              {school.name}
             </h1>
             <span className="flex text-xs items-center text-gray-400 font-semibold">
-              <LocationSvg className="p-1 stroke-blue-500" /> Dehradun, Uttarakhand
+              <LocationSvg className="p-1 stroke-blue-500" /> {school.city},
+              {school.state}
             </span>
             <div className="flex items-center gap-1 mt-1">
               <span className="flex items-center text-[10px] text-amber-500 border border-amber-200 px-1 py-0.5 rounded-lg bg-amber-50 font-bold">
                 <StarSvg className="size-3 stroke-amber-500 fill-amber-500" />{" "}
-                5.0
+                {school.rating.toFixed(1)}
               </span>
-              <span className="flex items-center text-[10px] text-blue-500 border border-blue-200 px-1 py-0.5 rounded-lg bg-blue-50 font-bold">
-                CBSE
-              </span>
-              <span className="flex items-center text-[10px] text-indigo-500 border border-indigo-200 px-1 py-0.5 rounded-lg bg-indigo-50 font-bold">
-                Boarding
-              </span>
-              <span className="flex items-center text-[10px] text-red-600 border border-red-200 px-1 py-0.5 rounded-lg bg-red-50 font-bold">
-                Boys Only
-              </span>
+              {school.schoolType.isCbse && (
+                <span className="flex items-center text-[10px] text-blue-500 border border-blue-200 px-1 py-0.5 rounded-lg bg-blue-50 font-bold">
+                  CBSE
+                </span>
+              )}
+              {school.schoolType.isIcse && (
+                <span className="flex items-center text-[10px] text-blue-500 border border-blue-200 px-1 py-0.5 rounded-lg bg-blue-50 font-bold">
+                  ICSE
+                </span>
+              )}
+              {school.schoolType.isIb && (
+                <span className="flex items-center text-[10px] text-blue-500 border border-blue-200 px-1 py-0.5 rounded-lg bg-blue-50 font-bold">
+                  IB
+                </span>
+              )}
+              {school.schoolType.isIgcse && (
+                <span className="flex items-center text-[10px] text-blue-500 border border-blue-200 px-1 py-0.5 rounded-lg bg-blue-50 font-bold">
+                  IGCSE
+                </span>
+              )}
+              {school.schoolType.isBoarding && (
+                <span className="flex items-center text-[10px] text-indigo-500 border border-indigo-200 px-1 py-0.5 rounded-lg bg-indigo-50 font-bold">
+                  Boarding
+                </span>
+              )}
+              {school.schoolType.isBoys && (
+                <span className="flex items-center text-[10px] text-red-600 border border-red-200 px-1 py-0.5 rounded-lg bg-red-50 font-bold">
+                  Boys Only
+                </span>
+              )}
+              {school.schoolType.isGirls && (
+                <span className="flex items-center text-[10px] text-red-600 border border-red-200 px-1 py-0.5 rounded-lg bg-red-50 font-bold">
+                  Girls Only
+                </span>
+              )}
+              {school.schoolType.isCoed && (
+                <span className="flex items-center text-[10px] text-red-600 border border-red-200 px-1 py-0.5 rounded-lg bg-red-50 font-bold">
+                  Co-ed
+                </span>
+              )}
               <span className="flex items-center text-[10px] text-green-600 border border-green-200 px-1 py-0.5 rounded-lg bg-green-50 font-bold">
-                ₹900,000 Avg
+                ₹{school.feeFrom.toLocaleString()} Avg
               </span>
             </div>
           </div>
         </div>
-        <div className="flex mt-15 justify-between w-full">
+        <div
+          className={`flex mt-8 md:mt-13 justify-between w-full ${listOption === "grid" ? "flex-col" : "flex-col md:flex-row"}`}
+        >
           <div>
             <span className="flex items-center gap-1">
-              <h1 className="text-lg font-bold text-green-600">₹900,000</h1>
-              <span className="text-neutral-400 font-bold text-[10px] tracking-tight ">Annual Fee</span>
+              <h1 className="text-lg font-extrabold tracking-tight text-green-600">
+                ₹{school.feeFrom.toLocaleString()}
+              </h1>
+              <span className="text-neutral-400 font-bold text-[10px] tracking-tight ">
+                Annual Fee
+              </span>
             </span>
             <div className="divide-x divide-neutral-200">
-              <Link href="/" className="text-[10px] px-2 font-bold text-blue-700 tracking-tight hover:underline">View Profile</Link>
-              <Link href="/" className="text-[10px] px-2 font-bold text-blue-700 tracking-tight hover:underline">View Fees</Link>
+              <Link
+                href={`/schools/${school.slug}/`}
+                className="text-[10px] px-2 font-bold text-blue-700 tracking-tight hover:underline"
+              >
+                View Profile
+              </Link>
+              <Link
+                href={`/schools/${school.slug}/fees/`}
+                className="text-[10px] px-2 font-bold text-blue-700 tracking-tight hover:underline"
+              >
+                View Fees
+              </Link>
             </div>
           </div>
-          <div className="flex self-end gap-2">
-            <PlaneButton onclick={() => console.log("a")} className="h-fit border-neutral-300 text-xs" >
-              Compare
-            </PlaneButton>
-            <PlaneButton onclick={() => console.log("a")} className="h-fit border-neutral-300 text-xs" >
-              Apply
-            </PlaneButton>
-            <LinkedButton scale={1.02} href="/" className="rounded-lg">
+          <div
+            className={`flex gap-2 ${listOption === "grid" ? "flex-col" : "flex-col md:flex-row md:self-end"}`}
+          >
+            <div
+              className={`flex gap-2 ${listOption === "grid" ? "mt-4" : "mt-4 md:mt-0"}`}
+            >
+              <PlaneButton
+                onclick={() => console.log("a")}
+                className={`h-fit border-neutral-300 text-xs ${listOption === "grid" ? "flex-1 flex items-center justify-center" : "flex-1 flex items-center justify-center"}`}
+              >
+                Compare
+              </PlaneButton>
+              <LinkedPlaneButton
+                href="/login"
+                className={`h-fit py-2 border-neutral-300 text-xs  ${listOption === "grid" ? "flex-1 flex items-center justify-center" : "flex-1 flex items-center justify-center w-fit"} `}
+              >
+                Apply
+              </LinkedPlaneButton>
+            </div>
+            <LinkedButton
+              scale={1.02}
+              href={`/schools/${school.slug}/`}
+              className={`rounded-lg ${listOption === "grid" ? "text-xs w-full flex items-center justify-center p-3" : "text-xs md:text-[10px] w-full flex items-center justify-center p-3 md:px-4 md:py-2.5"}`}
+            >
               Enquiry
             </LinkedButton>
           </div>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 };
 
