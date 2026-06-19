@@ -588,7 +588,7 @@ const SchoolContainer = ({
 }) => {
   return (
     <div
-      className={`mt-5 grid  gap-4 ${listOption === "default" ? "grid-cols-1" : "grid-cols-1 md:grid-cols-2 lg:grid-cols-3"}`}
+      className={`mt-5 min-h-100 grid  gap-4 ${listOption === "default" ? "grid-cols-1" : "grid-cols-1 md:grid-cols-2 lg:grid-cols-3"}`}
     >
       {schools.map((school) => (
         <SchoolCard key={school._id} school={school} listOption={listOption} />

@@ -1,5 +1,6 @@
 import AboutUniportal from "@/components/aboutUniportal";
 import FAQ from "@/components/faq";
+import Footer from "@/components/footer";
 import Hero from "@/components/hero";
 import Listing from "@/components/listing";
 
@@ -10,6 +11,7 @@ export default function Home() {
       <Listing />
       <AboutUniportal />
       <FAQ />
+      <Footer />
     </div>
   );
 }
