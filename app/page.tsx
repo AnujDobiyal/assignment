@@ -1,3 +1,4 @@
+import AboutUniportal from "@/components/aboutUniportal";
 import Hero from "@/components/hero";
 import Listing from "@/components/listing";
 
@@ -6,6 +7,7 @@ export default function Home() {
     <div className="py-px scroll-smooth">
       <Hero />
       <Listing />
+      <AboutUniportal />
     </div>
   );
 }
